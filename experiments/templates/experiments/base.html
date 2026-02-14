@@ -1,0 +1,34 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Newsicera | محاكاة علمية{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'experiments/style.css' %}">
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo">Newsicera <span>Labs</span></div>
+        <ul class="nav-links">
+            <li><a href="{% url 'experiment_list' %}">الرئيسية</a></li>
+            <li><a href="#experiments-section">التجارب</a></li>
+            <li><a href="#">عن الموقع</a></li>
+        </ul>
+    </nav>
+
+    {% block content %}
+    {% endblock %}
+
+    <footer>
+        <p>جميع الحقوق محفوظة &copy; 2024 - مختبر العلوم الافتراضي</p>
+    </footer>
+
+    <script src="{% static 'experiments/script.js' %}"></script>
+</body>
+
+</html>

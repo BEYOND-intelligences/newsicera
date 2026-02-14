@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاكاة فيزياء متطورة – تحديث الكتل</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@700;900&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #00B0FF;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            border: 3px solid #ffffff;
+        }
+
+        .stats-box {
+            background: #f8fafc;
+            border-left: 6px solid #3B82F6;
+            padding: 8px 16px;
+            border-radius: 12px;
+        }
+
+        .active-btn {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            border-color: #3B82F6 !important;
+            background-color: #eff6ff !important;
+            color: #1e40af !important;
+        }
+
+        .action-btn {
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+
+<body dir="rtl">
+
+    <div class="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20 w-full max-w-[95vw] px-4 pointer-events-none">
+        <div class="glass-panel p-4 pointer-events-auto flex flex-col gap-4">
+
+            <!-- Unified Buttons Row -->
+            <div class="flex flex-row items-center justify-between gap-4 overflow-x-auto pb-2">
+
+                <!-- Surface Selection -->
+                <div class="flex items-center gap-2 shrink-0 border-l pl-4">
+                    <span class="text-xs font-black text-slate-500 ml-1">السطح:</span>
+                    <button onclick="setSurface('ground')" id="btn-ground"
+                        class="surface-btn action-btn px-3 py-2 rounded-xl bg-white text-slate-700 font-bold border-2 border-green-600 text-xs whitespace-nowrap">
+                        🌿 عشب
+                    </button>
+                    <button onclick="setSurface('ice')" id="btn-ice"
+                        class="surface-btn action-btn px-3 py-2 rounded-xl bg-white text-slate-700 font-bold border-2 border-cyan-500 text-xs whitespace-nowrap">
+                        ❄️ جليد
+                    </button>
+                    <button onclick="setSurface('none')" id="btn-none"
+                        class="surface-btn action-btn px-3 py-2 rounded-xl bg-white text-slate-700 font-bold border-2 border-indigo-600 text-xs whitespace-nowrap">
+                        ✨ فضاء
+                    </button>
+                </div>
+
+                <!-- Mass Selection (Updated to 1, 2, 5) -->
+                <div class="flex items-center gap-2 shrink-0 border-l pl-4">
+                    <span class="text-xs font-black text-slate-500 ml-1">الكتلة:</span>
+                    <button onclick="setMass(1)" id="mass-1"
+                        class="mass-btn action-btn px-3 py-2 rounded-xl bg-white text-slate-700 font-bold border-2 border-slate-300 text-xs whitespace-nowrap">
+                        🏋️ 1 كجم
+                    </button>
+                    <button onclick="setMass(2)" id="mass-2"
+                        class="mass-btn action-btn px-3 py-2 rounded-xl bg-white text-slate-700 font-bold border-2 border-slate-300 text-xs whitespace-nowrap">
+                        🏋️ 2 كجم
+                    </button>
+                    <button onclick="setMass(5)" id="mass-5"
+                        class="mass-btn action-btn px-3 py-2 rounded-xl bg-white text-slate-700 font-bold border-2 border-slate-300 text-xs whitespace-nowrap">
+                        🏋️ 5 كجم
+                    </button>
+                </div>
+
+                <!-- Launch Button -->
+                <button onclick="shootDisk()"
+                    class="action-btn px-8 py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-xl font-black text-xl shadow-lg flex items-center gap-2 shrink-0">
+                    إطـلاق 🚀
+                </button>
+
+                <!-- Reset Button -->
+                <button onclick="resetSim()"
+                    class="action-btn px-6 py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-black shrink-0 flex items-center gap-2">
+                    تصفير 🔄
+                </button>
+            </div>
+
+            <!-- Stats Display -->
+            <div class="grid grid-cols-4 gap-4 border-t pt-3">
+                <div class="stats-box flex justify-between items-center">
+                    <span class="text-xs text-slate-500 font-bold">السرعة</span>
+                    <span id="vel-display" class="text-xl font-black text-blue-700 tracking-tighter">0.00 م/ث</span>
+                </div>
+                <div class="stats-box flex justify-between items-center" style="border-left-color: #10B981;">
+                    <span class="text-xs text-slate-500 font-bold">المسافة</span>
+                    <span id="dist-display" class="text-xl font-black text-green-700 tracking-tighter">0.00 م</span>
+                </div>
+                <div class="stats-box flex justify-between items-center" style="border-left-color: #F59E0B;">
+                    <span class="text-xs text-slate-500 font-bold">الكتلة</span>
+                    <span id="mass-display" class="text-xl font-black text-orange-600 tracking-tighter">1 كجم</span>
+                </div>
+                <div class="stats-box flex justify-between items-center" style="border-left-color: #ef4444;">
+                    <span class="text-xs text-slate-500 font-bold">المعامل (μ)</span>
+                    <span id="mu-display" class="text-xl font-black text-red-600 tracking-tighter">1.75</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <script>
+        const config = {
+            trackLength: 350,
+            baseImpulse: 100,
+            gravity: 9.8,
+            surfaces: {
+                ground: { mu: 4.25, color: 0x1B4332, emissive: 0x081C15 },
+                ice: { mu: 1.75, color: 0x81D4FA, emissive: 0x01579B },
+                none: { mu: 0.0, color: 0x1E1B4B, emissive: 0x312E81 }
+            },
+            masses: {
+                1: { radius: 1.2, height: 0.4, color: 0xFFD700 }, // ذهبي
+                2: { radius: 1.6, height: 0.6, color: 0x00FF00 }, // أخضر فاقع
+                5: { radius: 2.4, height: 1.0, color: 0xFF0000 }  // أحمر
+            },
+            currentSurface: 'ice',
+            currentMass: 1
+        };
+
+        let state = { velocity: 0, position: 0, isMoving: false };
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB);
+        scene.fog = new THREE.Fog(0x87CEEB, 100, 500);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(-20, 20, 40);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+        const sun = new THREE.DirectionalLight(0xffffff, 1.3);
+        sun.position.set(100, 200, 100);
+        sun.castShadow = true;
+        scene.add(sun);
+
+        const trackGeo = new THREE.BoxGeometry(config.trackLength, 2, 25);
+        const trackMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        const track = new THREE.Mesh(trackGeo, trackMat);
+        track.position.set(config.trackLength / 2 - 20, -1.1, 0);
+        track.receiveShadow = true;
+        scene.add(track);
+
+        function createRuler() {
+            const group = new THREE.Group();
+            for (let i = 0; i <= 300; i += 10) {
+                const marker = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.2, 8), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+                marker.position.set(i, 0.02, 10);
+                group.add(marker);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 256; canvas.height = 128;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = "rgba(0,0,0,0.85)";
+                ctx.roundRect(10, 10, 236, 108, 20);
+                ctx.fill();
+                ctx.font = "bold 80px Arial";
+                ctx.fillStyle = "#FFFF00";
+                ctx.textAlign = "center";
+                ctx.fillText(i + "m", 128, 90);
+
+                const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas) }));
+                sprite.position.set(i, 5, 12);
+                sprite.scale.set(6, 3, 1);
+                group.add(sprite);
+            }
+            return group;
+        }
+        scene.add(createRuler());
+
+        let disk = new THREE.Mesh(
+            new THREE.CylinderGeometry(1.2, 1.2, 0.4, 64),
+            new THREE.MeshStandardMaterial({ color: 0xFFD700, roughness: 0.1, metalness: 0.5 })
+        );
+        disk.position.y = 0.2;
+        disk.castShadow = true;
+        scene.add(disk);
+
+        function createForceLabel(color, text, offset) {
+            const arrow = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), 6, color, 1.5, 0.8);
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = "rgba(0,0,0,0.9)";
+            ctx.roundRect(0, 0, 512, 128, 30);
+            ctx.fill();
+            ctx.strokeStyle = "#" + new THREE.Color(color).getHexString();
+            ctx.lineWidth = 12;
+            ctx.stroke();
+            ctx.font = "bold 65px 'Tajawal'";
+            ctx.fillStyle = "white";
+            ctx.textAlign = "center";
+            ctx.fillText(text, 256, 85);
+
+            const tex = new THREE.CanvasTexture(canvas);
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex }));
+            sprite.scale.set(12, 3, 1);
+
+            return { arrow, sprite, offset };
+        }
+
+        let forceN, forceMg, forceF;
+
+        function setupForceIndicators() {
+            forceN = createForceLabel(0x00FF00, "قوة رد الفعل (N)", { y: 12 });
+            forceMg = createForceLabel(0xFF0000, "قوة الوزن (mg)", { y: -10 });
+            forceF = createForceLabel(0xFF00FF, "قوة الاحتكاك (f)", { x: -15 });
+
+            disk.add(forceN.arrow);
+            disk.add(forceMg.arrow);
+            disk.add(forceF.arrow);
+
+            forceMg.arrow.setDirection(new THREE.Vector3(0, -1, 0));
+            forceF.arrow.setDirection(new THREE.Vector3(-1, 0, 0));
+        }
+        setupForceIndicators();
+
+        window.setMass = (val) => {
+            if (state.isMoving) return;
+            config.currentMass = val;
+            const mData = config.masses[val];
+
+            disk.geometry.dispose();
+            disk.geometry = new THREE.CylinderGeometry(mData.radius, mData.radius, mData.height, 64);
+            disk.material.color.setHex(mData.color);
+            disk.position.y = mData.height / 2;
+
+            document.querySelectorAll('.mass-btn').forEach(b => b.classList.remove('active-btn'));
+            document.getElementById('mass-' + val).classList.add('active-btn');
+            document.getElementById('mass-display').innerText = val + " كجم";
+
+            forceN.offset.y = mData.height + 10;
+            forceMg.offset.y = -8;
+
+            forceMg.arrow.setLength(6 + val * 0.8, 1.5, 0.8);
+            forceN.arrow.setLength(6 + val * 0.8, 1.5, 0.8);
+        };
+
+        window.setSurface = (type) => {
+            config.currentSurface = type;
+            const s = config.surfaces[type];
+            track.material.color.setHex(s.color);
+            track.material.emissive.setHex(s.emissive);
+            track.material.emissiveIntensity = 0.7;
+
+            document.querySelectorAll('.surface-btn').forEach(b => b.classList.remove('active-btn'));
+            document.getElementById('btn-' + type).classList.add('active-btn');
+            document.getElementById('mu-display').innerText = s.mu.toFixed(2);
+        };
+
+        function updateSimulation() {
+            if (!state.isMoving) {
+                forceF.arrow.visible = forceF.sprite.visible = false;
+                return;
+            }
+
+            const dt = 0.016;
+            const mu = config.surfaces[config.currentSurface].mu;
+            const acceleration = -mu * config.gravity;
+
+            state.velocity += acceleration * dt;
+
+            if (state.velocity <= 0) {
+                state.velocity = 0;
+                state.isMoving = false;
+            }
+
+            state.position += state.velocity * dt;
+            disk.position.x = state.position;
+
+            document.getElementById('vel-display').innerText = state.velocity.toFixed(2) + " م/ث";
+            document.getElementById('dist-display').innerText = state.position.toFixed(2) + " م";
+
+            controls.target.x = state.position;
+            camera.position.x += (state.position - camera.position.x - 25) * 0.1;
+
+            forceF.arrow.visible = forceF.sprite.visible = mu > 0;
+            if (mu > 0) {
+                const fMagnitude = mu * config.currentMass * 0.5;
+                const fLen = 4 + fMagnitude;
+                forceF.arrow.setLength(fLen, 1.8, 1.0);
+                forceF.sprite.position.set(state.position - fLen / 2 - 10, 5, 0);
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            updateSimulation();
+
+            forceN.sprite.position.set(state.position, forceN.offset.y, 0);
+            forceMg.sprite.position.set(state.position, forceMg.offset.y, 0);
+
+            scene.add(forceN.sprite);
+            scene.add(forceMg.sprite);
+            if (forceF.arrow.visible) scene.add(forceF.sprite);
+            else if (scene.children.includes(forceF.sprite)) scene.remove(forceF.sprite);
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.shootDisk = () => {
+            if (state.isMoving) return;
+            state.velocity = config.baseImpulse / config.currentMass;
+            state.isMoving = true;
+        };
+
+        window.resetSim = () => {
+            state = { velocity: 0, position: 0, isMoving: false };
+            disk.position.set(0, config.masses[config.currentMass].height / 2, 0);
+            camera.position.set(-20, 20, 40);
+            controls.target.set(0, 0, 0);
+        };
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Initialize
+        setSurface('ice');
+        setMass(1);
+        animate();
+    </script>
+</body>
+
+</html>

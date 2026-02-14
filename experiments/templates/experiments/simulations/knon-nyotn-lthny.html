@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاكاة قانون نيوتن الثاني</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* رأس الصفحة */
+        header {
+            background-color: white;
+            width: 100%;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--secondary-color);
+        }
+
+        .formula {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            direction: ltr;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        /* حاوية المحاكاة */
+        .simulation-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            width: 95%;
+            max-width: 1200px;
+            margin-bottom: 20px;
+        }
+
+        /* منطقة الرسم (Canvas) */
+        .canvas-wrapper {
+            flex: 2;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            min-width: 300px;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            border-bottom: 5px solid #7f8c8d;
+            /* الأرضية */
+        }
+
+        /* لوحة التحكم */
+        .controls-panel {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            min-width: 250px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--secondary-color);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* العدادات */
+        .meters-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .meter-box {
+            text-align: center;
+        }
+
+        .meter-label {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        .meter-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+            direction: ltr;
+        }
+
+        /* الأزرار */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-start {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-start:hover {
+            background-color: #219150;
+        }
+
+        .btn-reset {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background-color: #c0392b;
+        }
+
+        /* شروحات توضيحية */
+        .legend {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .legend span {
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            display: inline-block;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>محاكاة قانون نيوتن الثاني</h1>
+        <div class="formula">$$ F_{net} = m \times a $$</div>
+    </header>
+
+    <div class="simulation-container">
+
+        <div class="canvas-wrapper">
+            <canvas id="simCanvas" height="400" width="800"></canvas>
+            <div
+                style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.8); padding: 5px; border-radius: 5px;">
+                الزمن: <span id="timeDisplay">0.00</span> s
+            </div>
+        </div>
+
+        <div class="controls-panel">
+
+            <div class="meters-grid">
+                <div class="meter-box">
+                    <div class="meter-label">القوة المحصلة (Net Force)</div>
+                    <div class="meter-value" id="val-fnet">0 N</div>
+                </div>
+                <div class="meter-box">
+                    <div class="meter-label">التسارع (Acceleration)</div>
+                    <div class="meter-value" id="val-acc">0 m/s²</div>
+                </div>
+                <div class="meter-box">
+                    <div class="meter-label">السرعة (Velocity)</div>
+                    <div class="meter-value" id="val-vel">0 m/s</div>
+                </div>
+                <div class="meter-box">
+                    <div class="meter-label">الإزاحة (Position)</div>
+                    <div class="meter-value" id="val-pos">0 m</div>
+                </div>
+            </div>
+
+            <hr style="border-color: #eee; margin-bottom: 20px;">
+
+            <div class="control-group">
+                <label>
+                    <span>القوة المؤثرة (F)</span>
+                    <span id="label-force">50 N</span>
+                </label>
+                <input type="range" id="input-force" min="0" max="200" value="50">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    <span>الكتلة (m)</span>
+                    <span id="label-mass">10 kg</span>
+                </label>
+                <input type="range" id="input-mass" min="1" max="50" value="10">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    <span>معامل الاحتكاك (μ)</span>
+                    <span id="label-friction">0.0 (سطح أملس)</span>
+                </label>
+                <input type="range" id="input-friction" min="0" max="1" step="0.1" value="0">
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-start" onclick="toggleSimulation()" id="btn-toggle">تشغيل &#9654;</button>
+                <button class="btn-reset" onclick="resetSimulation()">إعادة تعيين &#8635;</button>
+            </div>
+
+            <div class="legend">
+                <div><span class="dot" style="background:green;"></span> القوة المؤثرة</div>
+                <div><span class="dot" style="background:red;"></span> قوة الاحتكاك</div>
+                <div><span class="dot" style="background:blue;"></span> متجه السرعة</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- إعدادات المحاكاة ---
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // المتغيرات الفيزيائية
+        let state = {
+            mass: 10,           // kg
+            appliedForce: 50,   // N
+            frictionCoef: 0.0,  // mu
+            position: 0,        // meters
+            velocity: 0,        // m/s
+            acceleration: 0,    // m/s^2
+            time: 0,            // seconds
+            isRunning: false
+        };
+
+        // ثوابت الرسم والفيزياء
+        const PIXELS_PER_METER = 20; // كل 20 بكسل تمثل 1 متر
+        const GROUND_Y = 300;        // ارتفاع الأرضية
+        const BOX_SIZE_BASE = 40;    // الحجم الأساسي للصندوق
+        const FPS = 60;
+        const dt = 1 / FPS;          // Delta time (الخطوة الزمنية)
+        const g = 9.8;               // الجاذبية الأرضية
+
+        let animationFrameId;
+
+        // --- عناصر واجهة المستخدم ---
+        const ui = {
+            forceInput: document.getElementById('input-force'),
+            massInput: document.getElementById('input-mass'),
+            frictionInput: document.getElementById('input-friction'),
+            forceLabel: document.getElementById('label-force'),
+            massLabel: document.getElementById('label-mass'),
+            frictionLabel: document.getElementById('label-friction'),
+            btnToggle: document.getElementById('btn-toggle'),
+            displayTime: document.getElementById('timeDisplay'),
+            valFnet: document.getElementById('val-fnet'),
+            valAcc: document.getElementById('val-acc'),
+            valVel: document.getElementById('val-vel'),
+            valPos: document.getElementById('val-pos'),
+        };
+
+        // --- تحديث القيم عند تغيير المدخلات ---
+        ui.forceInput.addEventListener('input', (e) => {
+            state.appliedForce = parseFloat(e.target.value);
+            ui.forceLabel.textContent = state.appliedForce + ' N';
+            if (!state.isRunning) draw(); // تحديث الرسم لعرض القوة الجديدة
+        });
+
+        ui.massInput.addEventListener('input', (e) => {
+            state.mass = parseFloat(e.target.value);
+            ui.massLabel.textContent = state.mass + ' kg';
+            if (!state.isRunning) draw();
+        });
+
+        ui.frictionInput.addEventListener('input', (e) => {
+            state.frictionCoef = parseFloat(e.target.value);
+            ui.frictionLabel.textContent = state.frictionCoef > 0 ? state.frictionCoef : "0.0 (سطح أملس)";
+        });
+
+        // --- محرك الفيزياء (Physics Engine) ---
+        function updatePhysics() {
+            // 1. حساب قوة الاحتكاك
+            // F_friction = mu * N (حيث N = m * g)
+            let normalForce = state.mass * g;
+            let frictionForce = state.frictionCoef * normalForce;
+
+            // اتجاه الاحتكاك عكس الحركة دائمًا
+            if (state.velocity > 0) {
+                // الحركة لليمين، الاحتكاك لليسار
+            } else if (state.velocity < 0) {
+                // الحركة لليسار (لن تحدث هنا لأن القوة موجبة فقط)، لكن للاحتياط
+            } else {
+                // الجسم ساكن
+                // الاحتكاك السكوني يمنع الحركة إذا كانت القوة المؤثرة أقل من الاحتكاك
+                if (state.appliedForce <= frictionForce) {
+                    frictionForce = state.appliedForce; // تلغي القوة المؤثرة تمامًا
+                }
+            }
+
+            // 2. القوة المحصلة (Net Force)
+            let netForce = state.appliedForce - frictionForce;
+
+            // منع الرجوع للخلف بسبب خطأ في الطرح عند السكون
+            if (state.velocity === 0 && netForce < 0) netForce = 0;
+
+            // 3. قانون نيوتن الثاني (a = F / m)
+            state.acceleration = netForce / state.mass;
+
+            // 4. معادلات الحركة (Kinematics)
+            state.velocity += state.acceleration * dt;
+            state.position += state.velocity * dt;
+            state.time += dt;
+
+            // توقف عند نهاية الشاشة
+            if (state.position * PIXELS_PER_METER > canvas.width - 100) {
+                state.isRunning = false;
+                ui.btnToggle.textContent = "إعادة \u21bb";
+                ui.btnToggle.onclick = resetSimulation;
+            }
+        }
+
+        // --- وظائف الرسم (Rendering) ---
+        function drawArrow(ctx, fromx, fromy, tox, toy, color, text) {
+            const headlen = 10;
+            const angle = Math.atan2(toy - fromy, tox - fromx);
+
+            ctx.beginPath();
+            ctx.moveTo(fromx, fromy);
+            ctx.lineTo(tox, toy);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(tox, toy);
+            ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.lineTo(tox, toy);
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            // النص
+            if (text) {
+                ctx.fillStyle = color;
+                ctx.font = "14px Cairo";
+                ctx.fillText(text, tox, toy - 10);
+            }
+        }
+
+        function draw() {
+            // مسح الكانفاس
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // رسم الخلفية (علامات المسافة)
+            ctx.fillStyle = "#ccc";
+            for (let i = 0; i < canvas.width; i += PIXELS_PER_METER * 5) { // كل 5 أمتار خط
+                ctx.fillRect(i, GROUND_Y, 2, 10);
+                ctx.fillText((i / PIXELS_PER_METER) + "m", i + 5, GROUND_Y + 25);
+            }
+
+            // حساب أبعاد الصندوق (يكبر بزيادة الكتلة قليلاً لواقعية الشكل)
+            const boxSize = BOX_SIZE_BASE + (state.mass / 2);
+            const xPixel = 50 + (state.position * PIXELS_PER_METER); // 50 هامش بداية
+            const yPixel = GROUND_Y - boxSize;
+
+            // رسم الصندوق
+            ctx.fillStyle = "#34495e";
+            ctx.fillRect(xPixel, yPixel, boxSize, boxSize);
+
+            // كتابة الكتلة داخل الصندوق
+            ctx.fillStyle = "white";
+            ctx.font = "14px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(state.mass + "kg", xPixel + boxSize / 2, yPixel + boxSize / 2 + 5);
+
+            // رسم المتجهات (Vectors)
+            const centerX = xPixel + boxSize / 2;
+            const centerY = yPixel + boxSize / 2;
+
+            // 1. سهم القوة المؤثرة (أخضر)
+            if (state.appliedForce > 0) {
+                const forceLength = state.appliedForce * 1.5; // مقياس رسم للسهم
+                drawArrow(ctx, xPixel + boxSize, centerY, xPixel + boxSize + forceLength, centerY, "#27ae60", "F");
+            }
+
+            // 2. سهم الاحتكاك (أحمر)
+            let frictionVal = state.frictionCoef * state.mass * g;
+            if (state.appliedForce <= frictionVal && state.velocity === 0) frictionVal = state.appliedForce;
+
+            if (frictionVal > 0) {
+                const fricLength = frictionVal * 1.5;
+                drawArrow(ctx, xPixel, centerY, xPixel - fricLength, centerY, "#c0392b", "f");
+            }
+
+            // 3. سهم السرعة (أزرق - فوق الصندوق)
+            if (state.velocity > 0) {
+                const velLength = state.velocity * 5;
+                drawArrow(ctx, centerX, yPixel - 20, centerX + velLength, yPixel - 20, "#2980b9", "v");
+            }
+        }
+
+        function updateUI() {
+            let normalForce = state.mass * g;
+            let frictionForce = Math.min(state.appliedForce, state.frictionCoef * normalForce);
+            if (state.velocity > 0) frictionForce = state.frictionCoef * normalForce;
+
+            let netForce = Math.max(0, state.appliedForce - frictionForce);
+
+            ui.valFnet.textContent = netForce.toFixed(1) + " N";
+            ui.valAcc.textContent = state.acceleration.toFixed(2) + " m/s²";
+            ui.valVel.textContent = state.velocity.toFixed(2) + " m/s";
+            ui.valPos.textContent = state.position.toFixed(1) + " m";
+            ui.displayTime.textContent = state.time.toFixed(2);
+        }
+
+        // --- حلقة التحريك (Animation Loop) ---
+        function loop() {
+            if (state.isRunning) {
+                updatePhysics();
+                draw();
+                updateUI();
+                animationFrameId = requestAnimationFrame(loop);
+            }
+        }
+
+        // --- التحكم العام ---
+        function toggleSimulation() {
+            if (state.isRunning) {
+                state.isRunning = false;
+                cancelAnimationFrame(animationFrameId);
+                ui.btnToggle.innerHTML = "تشغيل &#9654;";
+                ui.btnToggle.classList.remove('btn-stop');
+            } else {
+                state.isRunning = true;
+                ui.btnToggle.innerHTML = "إيقاف &#10074;&#10074;";
+                ui.btnToggle.classList.add('btn-stop'); // لإضافة ستايل أحمر للإيقاف إذا أردت
+                loop();
+            }
+        }
+
+        function resetSimulation() {
+            state.isRunning = false;
+            cancelAnimationFrame(animationFrameId);
+            state.position = 0;
+            state.velocity = 0;
+            state.acceleration = 0;
+            state.time = 0;
+
+            ui.btnToggle.innerHTML = "تشغيل &#9654;";
+            ui.btnToggle.onclick = toggleSimulation;
+
+            draw();
+            updateUI();
+        }
+
+        // التشغيل الأولي للرسم
+        draw();
+
+    </script>
+</body>
+
+</html>

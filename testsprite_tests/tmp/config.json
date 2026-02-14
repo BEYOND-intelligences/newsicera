@@ -1,0 +1,16 @@
+{
+  "status": "init",
+  "scope": "codebase",
+  "type": "backend",
+  "localEndpoint": "http://localhost:8000/",
+  "serverPort": 56872,
+  "executionArgs": {
+    "projectName": "newsicera",
+    "projectPath": "c:\\Users\\prog\\Desktop\\newsicera",
+    "testIds": [],
+    "additionalInstruction": "Run backend test generation and execution against the running Django server on port 8000.",
+    "envs": {
+      "API_KEY": "sk-user-LlTiRVLxgBqhnNsK6Bj4Nt-nNaiAZ3yCJG9hC9ahJ04yrA2iVaSCshZyHZy8qrNZTKO4dw5FDF9KNf2c5y1EnJkl3FOKELYKk8lCUOxKWYDxjP3AviOmP7Vz9aEAisw5llg"
+    }
+  }
+}

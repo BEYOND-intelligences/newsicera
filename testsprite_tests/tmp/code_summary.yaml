@@ -1,0 +1,62 @@
+version: "2"
+type: backend
+tech_stack:
+  - Python
+  - Django 4.1
+  - SQLite
+  - Django ORM
+features:
+  - name: Experiment Listing
+    description: Lists active experiments on the home page.
+    files:
+      - experiments/views.py
+      - experiments/models.py
+      - experiments/urls.py
+      - experiments/templates/experiments/index.html
+    endpoints:
+      - method: GET
+        path: /
+        description: Render page with all active experiments.
+        auth_required: false
+        response_schema:
+          "200": HTML page with experiments context
+    depends_on:
+      - Experiment model
+  - name: Experiment Simulation Page
+    description: Displays a simulation page for an experiment by slug.
+    files:
+      - experiments/views.py
+      - experiments/urls.py
+      - experiments/templates/experiments/simulations/*.html
+    endpoints:
+      - method: GET
+        path: /experiment/<slug:slug>/play/
+        description: Render simulation template for experiment identified by slug.
+        auth_required: false
+        response_schema:
+          "200": HTML simulation page
+          "404": Not found when experiment slug does not exist
+    depends_on:
+      - Experiment model
+      - Slug-based template naming convention
+  - name: Django Admin Access
+    description: Provides default Django admin route for content management.
+    files:
+      - newsicera_project/urls.py
+    endpoints:
+      - method: GET
+        path: /admin/
+        description: Django admin interface login and management pages.
+        auth_required: true
+        response_schema:
+          "200": Admin HTML pages
+          "302": Redirect to login when unauthenticated
+    depends_on:
+      - Django admin app
+known_limitations:
+  - issue: simulation_view assumes a matching template exists for every experiment slug.
+    location: experiments/views.py
+    impact: Missing template can cause server error when rendering simulation page.
+  - issue: No explicit API or form validation layer for user inputs because endpoints are page-rendering only.
+    location: experiments/views.py
+    impact: Limited automated validation coverage and no JSON API contract.

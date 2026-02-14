@@ -1,0 +1,35 @@
+{% extends 'experiments/base.html' %}
+{% load static %}
+
+{% block content %}
+<header class="hero-slider">
+    <div class="slider-container" id="slider-container">
+    </div>
+
+    <button class="slider-btn prev" onclick="moveSlide(-1)">&#10094;</button>
+    <button class="slider-btn next" onclick="moveSlide(1)">&#10095;</button>
+</header>
+
+<section id="experiments-section" class="experiments-container">
+    <h2 class="section-title">قائمة التجارب العلمية</h2>
+    <p class="section-subtitle">اختر تجربة للبدء في المحاكاة التفاعلية</p>
+
+    <div class="cards-grid" id="cards-grid">
+        {% for experiment in experiments %}
+        <div class="card">
+            {% if experiment.image %}
+            <img src="{{ experiment.image.url }}" alt="{{ experiment.title }}" class="card-img">
+            {% else %}
+            <img src="https://via.placeholder.com/500x300?text=No+Image" alt="{{ experiment.title }}" class="card-img">
+            {% endif %}
+            <div class="card-body">
+                <h3 class="card-title">{{ experiment.title }}</h3>
+                <p class="card-desc">{{ experiment.description }}</p>
+                <a href="{% url 'simulation' experiment.slug %}" target="_blank" class="card-btn">تشغيل التجربة
+                    &#9654;</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
