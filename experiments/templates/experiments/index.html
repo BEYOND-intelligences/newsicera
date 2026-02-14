@@ -4,10 +4,32 @@
 {% block content %}
 <header class="hero-slider">
     <div class="slider-container" id="slider-container">
+        {% if slider_experiments %}
+        {% for experiment in slider_experiments %}
+        <div class="slide {% if forloop.first %}active{% endif %}"
+            style="background-image: url('{{ experiment.image.url }}');">
+            <div class="slide-content">
+                <h1 class="slide-title">{{ experiment.title }}</h1>
+                <a href="{% url 'simulation' experiment.slug %}" class="main-btn">ابدأ المحاكاة الآن</a>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <!-- Default Slide if no experiments have images -->
+        <div class="slide active" style="background-color: #2c3e50;">
+            <div class="slide-content">
+                <h1 class="slide-title">مختبر العلوم الافتراضي</h1>
+                <p style="font-size: 1.5rem; margin-bottom: 20px;">اكتشف قوانين الفيزياء والكيمياء بأسلوب تفاعلي</p>
+                <a href="#experiments-section" class="main-btn">تصفح التجارب</a>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
+    {% if slider_experiments|length > 1 %}
     <button class="slider-btn prev" onclick="moveSlide(-1)">&#10094;</button>
     <button class="slider-btn next" onclick="moveSlide(1)">&#10095;</button>
+    {% endif %}
 </header>
 
 <section id="experiments-section" class="experiments-container">

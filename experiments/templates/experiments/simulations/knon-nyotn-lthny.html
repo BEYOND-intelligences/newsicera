@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
@@ -6,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>محاكاة قانون نيوتن الثاني</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'experiments/style.css' %}">
     <style>
         :root {
             --primary-color: #3498db;
@@ -188,6 +190,12 @@
 <body>
 
     <header>
+        <div class="logo"
+            style="position: absolute; right: 20px; top: 15px; display: flex; align-items: center; gap: 10px; font-size: 1.2rem; font-weight: bold;">
+            <img src="{% static 'experiments/logo.png' %}" alt="Newsicera Logo"
+                style="width: 40px; height: 40px; border-radius: 8px;">
+            Newsicera <span style="color: #3498db;">Labs</span>
+        </div>
         <h1>محاكاة قانون نيوتن الثاني</h1>
         <div class="formula">$$ F_{net} = m \times a $$</div>
     </header>
@@ -503,6 +511,7 @@
         draw();
 
     </script>
+    {% include 'experiments/simulation_footer.html' %}
 </body>
 
 </html>

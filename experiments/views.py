@@ -8,7 +8,11 @@ from django.conf import settings
 def experiment_list(request):
     """Display list of active experiments on the home page."""
     experiments = Experiment.objects.filter(is_active=True)
-    return render(request, 'experiments/index.html', {'experiments': experiments})
+    slider_experiments = experiments.filter(image__isnull=False).exclude(image='')[:5]
+    return render(request, 'experiments/index.html', {
+        'experiments': experiments,
+        'slider_experiments': slider_experiments,
+    })
 
 def simulation_view(request, slug):
     """

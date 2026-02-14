@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
@@ -11,6 +12,7 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@700;900&display=swap');
+        @import url("{% static 'experiments/style.css' %}");
 
         body {
             margin: 0;
@@ -59,6 +61,12 @@
 </head>
 
 <body dir="rtl">
+
+    <div
+        class="fixed top-4 right-4 z-50 bg-white/90 backdrop-blur-sm p-2 rounded-xl shadow-lg border border-white/50 flex items-center gap-2">
+        <img src="{% static 'experiments/logo.png' %}" alt="Logo" class="w-10 h-10 rounded-lg">
+        <span class="font-bold text-slate-700">Newsicera <span class="text-blue-500">Labs</span></span>
+    </div>
 
     <div class="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20 w-full max-w-[95vw] px-4 pointer-events-none">
         <div class="glass-panel p-4 pointer-events-auto flex flex-col gap-4">
@@ -369,6 +377,7 @@
         setMass(1);
         animate();
     </script>
+    {% include 'experiments/simulation_footer.html' %}
 </body>
 
 </html>
