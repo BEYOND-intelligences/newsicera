@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import get_template
 from django.template import TemplateDoesNotExist
-from .models import Experiment, Subject
+from .models import Experiment, Subject, Slide
 import os
 from django.conf import settings
 
@@ -14,6 +14,7 @@ def experiment_list(request):
         experiments = experiments.filter(subject__slug=subject_slug)
     
     # Fetch active slides for the slider
+    slides = Slide.objects.filter(is_active=True).order_by('order')
 
     subjects = Subject.objects.all()
 
@@ -21,6 +22,7 @@ def experiment_list(request):
         'experiments': experiments,
         'subjects': subjects,
         'current_subject': subject_slug,
+        'slides': slides,
     })
 
 def experiment_detail(request, slug):

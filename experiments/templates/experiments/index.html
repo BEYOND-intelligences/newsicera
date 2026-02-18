@@ -8,6 +8,43 @@
 
 
 
+<section class="slider-section">
+    {% if slides %}
+    <link rel="stylesheet" href="{% static 'experiments/slider.css' %}">
+    <div class="slider-container">
+        <div class="slider-wrapper" id="sliderWrapper">
+            {% for slide in slides %}
+            <div class="slide">
+                {% if slide.image %}
+                <img src="{{ slide.image.url }}" alt="{{ slide.title }}">
+                {% else %}
+                <!-- Placeholder if image is missing, though model makes it required usually -->
+                <div
+                    style="height: 400px; background: #ddd; display: flex; align-items: center; justify-content: center;">
+                    No Image</div>
+                {% endif %}
+                <div class="slide-caption">
+                    <h2>{{ slide.title }}</h2>
+                    <p>{{ slide.description }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <!-- Dots -->
+        <div class="slider-dots" id="sliderDots">
+            {% for slide in slides %}
+            <span class="dot" data-index="{{ forloop.counter0 }}"></span>
+            {% endfor %}
+        </div>
+
+        <!-- Arrows -->
+        <button class="slider-arrow prev" id="prevSlide">&#10094;</button>
+        <button class="slider-arrow next" id="nextSlide">&#10095;</button>
+    </div>
+    <script src="{% static 'experiments/slider.js' %}"></script>
+    {% endif %}
+</section>
+
 <section id="experiments-section" class="experiments-container">
     <h2 class="section-title">قائمة التجارب العلمية</h2>
     <p class="section-subtitle">اختر تجربة للبدء في المحاكاة التفاعلية</p>

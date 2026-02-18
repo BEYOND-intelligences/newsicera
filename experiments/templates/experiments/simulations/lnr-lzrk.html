@@ -1,0 +1,400 @@
+{% extends 'experiments/simulation_base.html' %}
+
+{% block title %}محاكاة: النار الزرقاء{% endblock %}
+
+{% block simulation_content %}
+<h2>النار الزرقاء</h2>
+<div id="simulation-container">
+    <!doctype html>
+    <html lang="ar">
+
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>محاكاة النار الزرقاء — تعليمي</title>
+        <style>
+            :root {
+                --bg: #0b0f14;
+                --panel: #0f1720;
+                --accent: #1f8fe6;
+                --muted: #98a6b3;
+                font-family: "Segoe UI", Roboto, "Noto Naskh Arabic", Tahoma, sans-serif;
+            }
+
+            html,
+            body {
+                height: 100%;
+                margin: 0;
+                background: linear-gradient(180deg, var(--bg), #071019 80%);
+                color: #e6eef8
+            }
+
+            .container {
+                display: grid;
+                grid-template-columns: 1fr 360px;
+                gap: 18px;
+                padding: 18px;
+                height: 100%;
+            }
+
+            .sim-card {
+                background: rgba(255, 255, 255, 0.02);
+                border-radius: 12px;
+                padding: 14px;
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+                display: flex;
+                flex-direction: column
+            }
+
+            canvas {
+                flex: 1;
+                border-radius: 8px;
+                background: linear-gradient(180deg, #071226, #02101a);
+            }
+
+            .controls {
+                margin-top: 12px;
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                align-items: center
+            }
+
+            button {
+                background: var(--panel);
+                color: var(--accent);
+                border: 1px solid rgba(255, 255, 255, 0.04);
+                padding: 8px 12px;
+                border-radius: 8px;
+                cursor: pointer
+            }
+
+            button.primary {
+                background: var(--accent);
+                color: #07101a
+            }
+
+            label {
+                font-size: 13px;
+                color: var(--muted);
+                display: block;
+                margin-bottom: 4px
+            }
+
+            .slider {
+                width: 220px
+            }
+
+            .side {
+                background: rgba(255, 255, 255, 0.02);
+                border-radius: 12px;
+                padding: 14px;
+                overflow: auto;
+                height: 100%
+            }
+
+            h2 {
+                margin: 4px 0 10px 0;
+                font-size: 18px
+            }
+
+            .row {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                margin-bottom: 10px
+            }
+
+            .stat {
+                background: rgba(255, 255, 255, 0.02);
+                padding: 8px;
+                border-radius: 8px;
+                font-size: 14px;
+                color: var(--muted)
+            }
+
+            .footer-note {
+                font-size: 12px;
+                color: #c6d7f0aa;
+                margin-top: 10px
+            }
+
+            .small {
+                font-size: 13px;
+                color: var(--muted)
+            }
+
+            .danger {
+                color: #ff9b9b;
+                font-weight: 600
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="sim-card">
+                <h2>محاكاة النار الزرقاء (بصرية) — للتعليم</h2>
+                <canvas id="flameCanvas" width="900" height="520"></canvas>
+
+                <div class="controls" aria-hidden="false">
+                    <button id="igniteBtn" class="primary">Ignite — إشعال</button>
+                    <button id="extBtn">Extinguish — إطفاء</button>
+                    <button id="pauseBtn">Pause — إيقاف</button>
+                    <button id="resetBtn">Reset — إعادة</button>
+
+                    <div style="margin-left:auto" class="small">Temp (sim): <span id="tempDisplay">—</span> °C</div>
+                </div>
+
+                <div class="controls" style="margin-top:8px;">
+                    <div>
+                        <label>Fuel (محرك الوقود) — شدة الوقود</label>
+                        <input id="fuel" class="slider" type="range" min="0" max="1" step="0.01" value="0.7">
+                    </div>
+                    <div>
+                        <label>Oxygen (الأكسجين) — تدفق الأكسجين</label>
+                        <input id="oxygen" class="slider" type="range" min="0" max="1" step="0.01" value="0.8">
+                    </div>
+                    <div>
+                        <label>Color Shift — انزياح اللون</label>
+                        <input id="colorShift" class="slider" type="range" min="-0.5" max="0.5" step="0.01" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <aside class="side" role="complementary">
+                <h2>شرح قصير وملاحظة أمان</h2>
+                <p class="small">
+                    هذه المحاكاة بصرية تُبيّن خواص عامة لنار مُثالية: شدة اللهب، الانتفاخ، ودرجة حرارة افتراضية.
+                    <strong>لون اللهب الأزرق هنا هو تمثيل بصري</strong> لــ:
+                <ul>
+                    <li>احتراق أقرب إلى "احتراق كامل" (مؤشّر عددي في المحاكاة)،</li>
+                    <li>وجود جزيئات مثارة تُصدر أطوال موجية في نطاق الأزرق،</li>
+                    <li>درجات حرارة أعلى من اللهب الأصفر/البرتقالي في النموذج البسيط.</li>
+                </ul>
+                </p>
+
+                <p class="small">
+                    <strong class="danger">تنبيه أمني:</strong> لا تترجم هذه المحاكاة إلى خطوات عملية أو وصفة. أي تعامل
+                    عملي مع حرائق أو مواد كيميائية يجب أن يتم فقط في مختبر مؤمن وتحت إشراف مختصين ومع معدات أمان.
+                </p>
+
+                <h2>كيف تعمل المحاكاة (مختصر تقني)</h2>
+                <ol class="small">
+                    <li>مولّد جزيئات (particle emitter) في موضع مصدر اللهب يطلق جسيمات تمثل أجزاء اللهب.</li>
+                    <li>كل جسيم له موقع، سرعة، عمر، ودرجة حرارة افتراضية تُؤثر على شفافيته وحجمه ولونه.</li>
+                    <li>مع زيادة الأكسجين: اللهب يصبح أنحف، أكثر ارتفاعًا، وارتفاع درجة الحرارة (افتراضيًا).</li>
+                    <li>مع زيادة الوقود: كثافة الجسيمات تزداد، والرموز البصرية تصبح أكبر وأكثر سطوعًا.</li>
+                </ol>
+
+                <h2>عناصر التحكم</h2>
+                <p class="small">
+                    <strong>Ignite</strong> لبدء اللهب — <strong>Extinguish</strong> لإطفائه. استخدم منزلقي الوقود
+                    والأكسجين لملاحظة تغيّر الشكل واللون. قيمة "temp" المعروضة محاكاة رقمية وليست قياسًا حقيقيًا.
+                </p>
+
+                <div class="footer-note">
+                    الهدف: فهم كيف تؤثر متغيرات بيئية على شكل اللهب وخصائصه بصريًا، دون الدخول إلى إجراءات خطرة.
+                </div>
+            </aside>
+        </div>
+
+        <script>
+            /* === محاكاة اللهب الزرقاء — JavaScript ===
+               تعليمات: هذا كود بصري يعمل على canvas. التعليقات بالعربية لشرح البنية.
+            */
+
+            const canvas = document.getElementById('flameCanvas');
+            const ctx = canvas.getContext('2d');
+
+            let W = canvas.width;
+            let H = canvas.height;
+
+            // عناصر التحكم
+            const igniteBtn = document.getElementById('igniteBtn');
+            const extBtn = document.getElementById('extBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const fuelSlider = document.getElementById('fuel');
+            const oxySlider = document.getElementById('oxygen');
+            const colorShift = document.getElementById('colorShift');
+            const tempDisplay = document.getElementById('tempDisplay');
+
+            let running = true;
+            let ignited = false;
+
+            // مجموعة من الجسيمات
+            class Particle {
+                constructor(x, y, vx, vy, life, temp) {
+                    this.x = x; this.y = y;
+                    this.vx = vx; this.vy = vy;
+                    this.life = life; this.maxLife = life;
+                    this.temp = temp; // رقم افتراضي لتمثيل الحرارة
+                    this.size = Math.random() * 8 + 6;
+                }
+                update(dt, fuel, oxy) {
+                    // الحركة: تأثير الطفو لأعلى مع اضطراب عشوائي
+                    const buoyancy = -0.6 - 2.0 * (this.temp / 1000); // كلما زادت temp ازداد الطفو
+                    this.vy += buoyancy * dt;
+                    // اضطراب عرضي يعتمد على الأكسجين
+                    this.vx += (Math.random() - 0.5) * 10 * (1 - oxy) * dt;
+                    // تدرّج في العمر
+                    this.life -= dt * (0.6 + (1 - fuel) * 0.8);
+                    // تبريد طفيف أثناء الارتفاع
+                    this.temp -= dt * (10 + (1 - oxy) * 30);
+                    this.x += this.vx * dt * 50;
+                    this.y += this.vy * dt * 50;
+                    this.size *= 0.995;
+                }
+                isDead() {
+                    return this.life <= 0 || this.y < -50 || this.size < 0.5;
+                }
+            }
+
+            // مصدّر الجسيمات
+            const particles = [];
+            let emitter = { x: W / 2, y: H - 60 };
+
+            function emit(fuel, oxy) {
+                // عدد الجسيمات يصعد مع الوقود
+                let count = Math.round(6 + 40 * fuel);
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.random() - 0.5) * Math.PI * 0.45;
+                    const speed = 0.2 + Math.random() * 1.6;
+                    const vx = Math.sin(angle) * speed;
+                    const vy = -Math.cos(angle) * speed * (1 + oxy * 2);
+                    // Temp افتراضية تعتمد على الأكسجين والوقود
+                    let baseTemp = 900 + 900 * oxy + 400 * fuel;
+                    baseTemp += (Math.random() - 0.5) * 120;
+                    const life = 0.8 + Math.random() * 1.8;
+                    particles.push(new Particle(emitter.x + (Math.random() - 0.5) * 30, emitter.y + (Math.random() - 0.5) * 10, vx, vy, life, baseTemp));
+                }
+            }
+
+            let last = performance.now();
+
+            // رسم كل شيء
+            function render() {
+                // خلفية خفيفة (تخميد) لآثار الحركة
+                ctx.fillStyle = "rgba(3,8,12,0.18)";
+                ctx.fillRect(0, 0, W, H);
+
+                // رسم اللهب عبر الجسيمات (نقطة إلى دائرة ذات تدرج لوني)
+                for (let i = 0; i < particles.length; i++) {
+                    const p = particles[i];
+                    const lifeRatio = Math.max(0, p.life / p.maxLife);
+                    // حساب اللون: نستخدم طيف يميل للأزرق/السماوي حسب temp ومعامل انزياح اللون
+                    const tnorm = Math.min(1, Math.max(0, (p.temp - 600) / 1600));
+                    // colorShift يغيّر الطيف نحو الأزرق أو نحو السيان
+                    const shift = parseFloat(colorShift.value);
+                    // نحسب قيم RGB بشكل تجريبي لإنتاج درجات الأزرق
+                    const r = Math.floor(30 + 60 * (1 - tnorm) * (1 - Math.abs(shift)));
+                    const g = Math.floor(90 + 120 * (tnorm) * (1 - Math.abs(shift)));
+                    const b = Math.floor(180 + 140 * tnorm + 120 * Math.abs(shift));
+                    const alpha = Math.min(1, 0.9 * lifeRatio * (p.size / 10));
+                    const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, Math.max(6, p.size * 3));
+                    grd.addColorStop(0, `rgba(${r},${g},${b},${alpha})`);
+                    grd.addColorStop(0.6, `rgba(${Math.floor(r * 0.4)},${Math.floor(g * 0.5)},${Math.floor(b * 0.6)},${alpha * 0.6})`);
+                    grd.addColorStop(1, `rgba(8,10,14,0)`);
+                    ctx.fillStyle = grd;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, Math.max(3, p.size), 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // حلقة التحديث
+            function step(now) {
+                if (!running) { last = now; requestAnimationFrame(step); return; }
+                const dtRaw = (now - last) / 1000;
+                last = now;
+                const dt = Math.min(0.06, dtRaw); // حد dt لتجنب قفزات كبيرة
+
+                // تحديث الأبعاد لو تغيرت الشاشة
+                if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+                    // نحافظ على نسبة العرض ثابتة لكن نكيّف
+                    canvas.width = canvas.clientWidth;
+                    canvas.height = canvas.clientHeight;
+                    W = canvas.width; H = canvas.height;
+                    emitter.x = W / 2; emitter.y = H - 60;
+                }
+
+                // قراءة قيم التحكم
+                const fuel = parseFloat(fuelSlider.value);
+                const oxy = parseFloat(oxySlider.value);
+
+                // إذا مشتعل، نطلق جسيمات كل إطار
+                if (ignited) {
+                    // معدل الإطلاق يعتمد على الوقود والأكسجين
+                    const emits = Math.round(1 + 8 * fuel);
+                    for (let i = 0; i < emits; i++) emit(fuel, oxy);
+                }
+
+                // تحديث كل جسيم
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.update(dt, fuel, oxy);
+                    if (p.isDead()) particles.splice(i, 1);
+                }
+
+                // رسم
+                render();
+
+                // تحديث عرض "الحرارة" المحاكاة (قيمة تعتمد على متوسط حرارة الجسيمات)
+                const avgTemp = particles.length ? Math.round(particles.reduce((s, p) => s + p.temp, 0) / particles.length) : 0;
+                tempDisplay.textContent = avgTemp ? avgTemp : '—';
+
+                requestAnimationFrame(step);
+            }
+
+            // أزرار التحكم
+            igniteBtn.addEventListener('click', () => {
+                ignited = true;
+                igniteBtn.disabled = true;
+                igniteBtn.textContent = 'Ignited — مشتعل';
+            });
+
+            extBtn.addEventListener('click', () => {
+                ignited = false;
+                // عندما نطفئ: نوقف إطلاق الجسيمات نسمح لها بالانطفاء الطبيعي
+                igniteBtn.disabled = false;
+                igniteBtn.textContent = 'Ignite — إشعال';
+            });
+
+            pauseBtn.addEventListener('click', () => {
+                running = !running;
+                pauseBtn.textContent = running ? 'Pause — إيقاف' : 'Resume — استمرار';
+            });
+
+            resetBtn.addEventListener('click', () => {
+                particles.length = 0;
+                ignited = false;
+                igniteBtn.disabled = false;
+                igniteBtn.textContent = 'Ignite — إشعال';
+                tempDisplay.textContent = '—';
+            });
+
+            // عند تحميل الصفحة ابدأ الحلقة
+            requestAnimationFrame(step);
+
+            // قابلية إعادة التحجيم
+            window.addEventListener('resize', () => {
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+                W = canvas.width; H = canvas.height;
+                emitter.x = W / 2; emitter.y = H - 60;
+            });
+
+            // لمسات صغيرة: تكثيف البريق عندما يزيد الأوكسجين
+            setInterval(() => {
+                // يمكننا إضافة مؤثرات إضافية دورية إن رغبت
+            }, 500);
+
+        </script>
+    </body>
+
+    </html>
+
+    <p>مساحة العمل جاهزة للكود الخاص بالتجربة.</p>
+</div>
+{% endblock %}

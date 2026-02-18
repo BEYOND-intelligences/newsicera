@@ -57,3 +57,18 @@ class Experiment(models.Model):
 
 
 
+
+class Slide(models.Model):
+    title = models.CharField(max_length=200, verbose_name="العنوان")
+    description = models.TextField(verbose_name="الوصف")
+    image = models.ImageField(upload_to='slides/', verbose_name="الصورة")
+    order = models.PositiveIntegerField(default=0, verbose_name="الترتيب")
+    is_active = models.BooleanField(default=True, verbose_name="فعال")
+
+    class Meta:
+        verbose_name = "شريحة"
+        verbose_name_plural = "شرائح"
+        ordering = ['order']
+
+    def __str__(self):
+        return self.title

@@ -1,7 +1,13 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
-from .models import Experiment, Subject, Tag
+from .models import Experiment, Subject, Tag, Slide
+
+@admin.register(Slide)
+class SlideAdmin(admin.ModelAdmin):
+    list_display = ('title', 'order', 'is_active')
+    list_editable = ('order', 'is_active')
+    fields = ('title', 'description', 'image', 'order', 'is_active')
 
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
