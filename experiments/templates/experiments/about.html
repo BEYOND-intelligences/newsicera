@@ -1,0 +1,28 @@
+{% extends 'experiments/base.html' %}
+
+{% block title %}عن الموقع | Newsicera{% endblock %}
+
+{% block content %}
+<section class="about-section" style="padding: 50px 20px; text-align: center;">
+    <div class="container" style="max-width: 800px; margin: 0 auto;">
+        <h1 style="margin-bottom: 30px; color: #2c3e50;">عن موقع Newsicera</h1>
+        <p style="font-size: 1.2rem; line-height: 1.8; color: #555;">
+            مرحبًا بكم في <strong>Newsicera</strong>، منصتكم الرائدة للمحاكاة العلمية الافتراضية.
+        </p>
+        <p style="font-size: 1.1rem; line-height: 1.8; color: #555; margin-top: 20px;">
+            يهدف هذا الموقع إلى توفير بيئة تعليمية تفاعلية للطلاب والمعلمين، تمكنهم من إجراء التجارب العلمية في الفيزياء
+            والكيمياء وغيرها من العلوم، دون الحاجة إلى مختبرات حقيقية.
+        </p>
+        <p style="font-size: 1.1rem; line-height: 1.8; color: #555; margin-top: 20px;">
+            نؤمن بأن التجربة هي خير برهان، وأن التعليم التفاعلي هو المستقبل. لذلك قمنا بتطوير مجموعة من المحاكيات
+            الدقيقة التي تعكس القوانين الطبيعية، مما يساعد على فهم أعمق للمفاهيم العلمية المعقدة.
+        </p>
+
+        <div style="margin-top: 50px;">
+            <a href="{% url 'experiment_list' %}" class="main-btn"
+                style="background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">تصفح
+                التجارب</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

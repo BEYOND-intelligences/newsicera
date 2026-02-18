@@ -7,19 +7,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Newsicera | محاكاة علمية{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'experiments/style.css' %}">
+    <link rel="stylesheet" href="{% static 'experiments/style.css' %}?v=2">
+
 </head>
 
 <body>
 
     <nav class="navbar">
-        <div class="logo"><img src="/media/logo.jpg" alt="Newsicera Logo" class="logo-img">Newsicera
-            <span>Labs</span>
+        <div class="logo"><img src="/media/logo.jpg" alt="Newsicera lab" class="logo-img">
         </div>
         <ul class="nav-links">
             <li><a href="{% url 'experiment_list' %}">الرئيسية</a></li>
-            <li><a href="#experiments-section">التجارب</a></li>
-            <li><a href="#">عن الموقع</a></li>
+            <li><a href="{% url 'experiment_list' %}#experiments-section">التجارب</a></li>
+            <li><a href="{% url 'about' %}">عن الموقع</a></li>
         </ul>
     </nav>
 
@@ -31,6 +31,7 @@
     </footer>
 
     <script src="{% static 'experiments/script.js' %}"></script>
+
 </body>
 
 </html>

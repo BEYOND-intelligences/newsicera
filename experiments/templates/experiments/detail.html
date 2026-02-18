@@ -1,0 +1,90 @@
+{% extends 'experiments/base.html' %}
+
+{% block title %}{{ experiment.title }} | Newsicera{% endblock %}
+
+{% block content %}
+<div class="container experiment-detail" style="max-width: 900px; margin: 40px auto; padding: 20px;">
+
+    <!-- Header Section -->
+    <div class="detail-header" style="text-align: center; margin-bottom: 40px;">
+        <h1 style="color: #2c3e50; font-size: 2.5rem; margin-bottom: 10px;">{{ experiment.title }}</h1>
+        {% if experiment.subject %}
+        <span class="subject-badge"
+            style="background-color: #3498db; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem;">
+            {{ experiment.subject.name }}
+        </span>
+        {% endif %}
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="detail-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
+
+        <!-- Left Column: Image -->
+        <div class="detail-image">
+            {% if experiment.image %}
+            <img src="{{ experiment.image.url }}" alt="{{ experiment.title }}"
+                style="width: 100%; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            {% else %}
+            <img src="https://via.placeholder.com/600x400?text=No+Image" alt="{{ experiment.title }}"
+                style="width: 100%; border-radius: 10px;">
+            {% endif %}
+        </div>
+
+        <!-- Right Column: Description -->
+        <div class="detail-info">
+            <h2 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; display: inline-block;">
+                نبذة عن التجربة</h2>
+            <p style="line-height: 1.8; color: #555; margin-top: 15px;">
+                {{ experiment.description }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Detailed Sections -->
+    <div class="detail-sections"
+        style="background-color: #f9f9f9; padding: 30px; border-radius: 10px; margin-bottom: 40px;">
+
+        {% if experiment.physical_law %}
+        <div class="section-block" style="margin-bottom: 30px;">
+            <h3 style="color: #2c3e50; margin-bottom: 15px;">🧪 القانون الفيزيائي</h3>
+            <div style="background-color: white; padding: 15px; border-right: 4px solid #e74c3c; border-radius: 4px;">
+                {{ experiment.physical_law|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if experiment.tools_needed %}
+        <div class="section-block" style="margin-bottom: 30px;">
+            <h3 style="color: #2c3e50; margin-bottom: 15px;">🔧 الأدوات المطلوبة</h3>
+            <p style="color: #555;">{{ experiment.tools_needed|linebreaks }}</p>
+        </div>
+        {% endif %}
+
+        {% if experiment.steps %}
+        <div class="section-block">
+            <h3 style="color: #2c3e50; margin-bottom: 15px;">📝 خطوات التجربة</h3>
+            <p style="color: #555;">{{ experiment.steps|linebreaks }}</p>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Action Button -->
+    <div class="detail-actions" style="text-align: center;">
+        <a href="{% url 'simulation' experiment.slug %}" class="start-btn" style="
+            background-color: #27ae60;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            text-decoration: none;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+            transition: transform 0.2s;
+            display: inline-block;
+        " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            🚀 ابدأ التجربة الآن
+        </a>
+    </div>
+
+</div>
+{% endblock %}

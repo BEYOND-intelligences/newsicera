@@ -1,18 +1,36 @@
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import get_template
 from django.template import TemplateDoesNotExist
-from .models import Experiment
+from .models import Experiment, Subject
 import os
 from django.conf import settings
 
 def experiment_list(request):
-    """Display list of active experiments on the home page."""
+    """Display list of active experiments on the home page with filtering."""
+    subject_slug = request.GET.get('subject')
     experiments = Experiment.objects.filter(is_active=True)
-    slider_experiments = experiments.filter(image__isnull=False).exclude(image='')[:5]
+    
+    if subject_slug:
+        experiments = experiments.filter(subject__slug=subject_slug)
+    
+    # Fetch active slides for the slider
+
+    subjects = Subject.objects.all()
+
     return render(request, 'experiments/index.html', {
         'experiments': experiments,
-        'slider_experiments': slider_experiments,
+        'subjects': subjects,
+        'current_subject': subject_slug,
     })
+
+def experiment_detail(request, slug):
+    """Display detailed information about an experiment."""
+    experiment = get_object_or_404(Experiment, slug=slug)
+    return render(request, 'experiments/detail.html', {'experiment': experiment})
+
+def about(request):
+    """Display the about page."""
+    return render(request, 'experiments/about.html')
 
 def simulation_view(request, slug):
     """
